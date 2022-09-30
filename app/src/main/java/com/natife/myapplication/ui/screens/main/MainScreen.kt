@@ -6,7 +6,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Icon
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
@@ -19,6 +18,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.paging.LoadState
+import androidx.paging.PagingData
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.items
 import coil.ImageLoader
 import coil.compose.rememberAsyncImagePainter
 import coil.decode.GifDecoder
@@ -26,13 +30,16 @@ import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
 import com.natife.myapplication.ui.animations.DisplayShimmer
 import com.natife.myapplication.ui.uistate.UiState
-
+import kotlinx.coroutines.flow.Flow
+import com.natife.myapplication.R
 
 @ExperimentalFoundationApi
 @Composable
 fun MainScreen(
     gifQuery: String,
-    gifsUiState: UiState<String>,
+//    gifsUiState: UiState<Flow<PagingData<String>>>,
+    isLoading:Boolean,
+    gifs: Flow<PagingData<String>>?,
     onTextQueryChanged: (String) -> Unit,
 ) {
     Column(
@@ -50,26 +57,59 @@ fun MainScreen(
             label = { Text(text = "Enter gif...") }
         )
         Spacer(modifier = Modifier.padding(8.dp))
-        DisplayShimmer(isLoading = gifsUiState.isLoading)
-        if (gifsUiState.errorMessage !=null){
-            Toast.makeText(LocalContext.current, stringResource(id = gifsUiState.errorMessage), Toast.LENGTH_SHORT).show()
-        } else {
-            DisplayGifsList(gifsUiState)
+        val lazyPagingItems = gifs?.collectAsLazyPagingItems()
+        lazyPagingItems?.apply {
+
+            when {
+                loadState.refresh is LoadState.Loading   -> DisplayShimmer(isLoading = true)
+                loadState.append is LoadState.Error -> Toast.makeText(
+                    LocalContext.current,
+                    stringResource(id = R.string.empty_response),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+
+        DisplayShimmer(isLoading = isLoading)
+        DisplayGifsList(lazyPagingItems)
+
+//        DisplayShimmer(isLoading = gifsUiState.isLoading)
+//        if (gifsUiState.errorMessage != null) {
+//            Toast.makeText(
+//                LocalContext.current,
+//                stringResource(id = gifsUiState.errorMessage),
+//                Toast.LENGTH_SHORT
+//            ).show()
+//        } else {
+//            DisplayGifsList(gifsUiState)
+//        }
+    }
+}
+
+@Composable
+private fun DisplayGifsList(lazyPagingItems: LazyPagingItems<String>?) {
+    lazyPagingItems?.let { gif ->
+        LazyColumn {
+            items(gif) {
+                GifListItem(it!!)
+            }
         }
     }
 }
 
 @Composable
-private fun DisplayGifsList(gifsUiState: UiState<String>) {
-    gifsUiState.data?.let { gifsList ->
+private fun DisplayGifsList(gifsUiState: UiState<Flow<PagingData<String>>>) {
+    gifsUiState.data?.let { gifsFlow ->
+        val lazyPagingItems = gifsFlow.collectAsLazyPagingItems()
         LazyColumn {
-            items(gifsList) {
-                GifListItem(it)
+            items(lazyPagingItems){
+                GifListItem(it!!)
             }
         }
     }
 
 }
+
 
 @Composable
 private fun GifListItem(it: String) {
