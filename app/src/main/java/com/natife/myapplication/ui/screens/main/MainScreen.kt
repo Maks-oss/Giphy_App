@@ -37,9 +37,7 @@ import com.natife.myapplication.R
 @Composable
 fun MainScreen(
     gifQuery: String,
-//    gifsUiState: UiState<Flow<PagingData<String>>>,
-    isLoading:Boolean,
-    gifs: Flow<PagingData<String>>?,
+    gifsFlowUiState: UiState<Flow<PagingData<String>>>,
     onTextQueryChanged: (String) -> Unit,
 ) {
     Column(
@@ -57,32 +55,19 @@ fun MainScreen(
             label = { Text(text = "Enter gif...") }
         )
         Spacer(modifier = Modifier.padding(8.dp))
-        val lazyPagingItems = gifs?.collectAsLazyPagingItems()
-        lazyPagingItems?.apply {
 
-            when {
-                loadState.refresh is LoadState.Loading   -> DisplayShimmer(isLoading = true)
-                loadState.append is LoadState.Error -> Toast.makeText(
-                    LocalContext.current,
-                    stringResource(id = R.string.empty_response),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
+
+        DisplayShimmer(isLoading = gifsFlowUiState.isLoading)
+        val lazyPagingItems = gifsFlowUiState.data?.collectAsLazyPagingItems()
+        if (lazyPagingItems?.loadState?.refresh is LoadState.Error){
+
+            Toast.makeText(
+                LocalContext.current,
+                stringResource(id = R.string.empty_response),
+                Toast.LENGTH_SHORT
+            ).show()
         }
-
-        DisplayShimmer(isLoading = isLoading)
-        DisplayGifsList(lazyPagingItems)
-
-//        DisplayShimmer(isLoading = gifsUiState.isLoading)
-//        if (gifsUiState.errorMessage != null) {
-//            Toast.makeText(
-//                LocalContext.current,
-//                stringResource(id = gifsUiState.errorMessage),
-//                Toast.LENGTH_SHORT
-//            ).show()
-//        } else {
-//            DisplayGifsList(gifsUiState)
-//        }
+        DisplayGifsList(lazyPagingItems = lazyPagingItems)
     }
 }
 

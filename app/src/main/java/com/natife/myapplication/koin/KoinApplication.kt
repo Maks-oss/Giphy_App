@@ -11,7 +11,7 @@ class KoinApplication: Application() {
             androidContext(this@KoinApplication)
             modules(listOf(
                 retrofitModule,
-//                databaseModule,
+                fileProcessorModule,
                 repositoryModule,
                 viewModelModule
             ))

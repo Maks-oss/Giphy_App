@@ -21,9 +21,7 @@ class MainActivity : ComponentActivity() {
             GiphyAppTheme {
                 MainScreen(
                     mainViewModel.gifQuery,
-                    mainViewModel.isLoading,
-                    mainViewModel.gifsFlow,
-//                    mainViewModel.gifUiState,
+                    mainViewModel.gifsFlowUiState,
                     mainViewModel::onGifQueryChanged,
                 )
             }
