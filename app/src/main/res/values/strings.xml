@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Giphy App</string>
+    <string name="empty_response">Nothing was found by your request</string>
+    <string name="netowrk_error">Bad network connection. Please try again</string>
 </resources>

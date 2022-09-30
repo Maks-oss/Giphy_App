@@ -4,7 +4,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
-    private const val BASE_URL = "https://api.jamendo.com/v3.0/"
+    private const val BASE_URL = "https://api.giphy.com/v1/gifs/"
 
 
     fun provideTrackApi(retrofit: Retrofit): GifService = retrofit.create(
