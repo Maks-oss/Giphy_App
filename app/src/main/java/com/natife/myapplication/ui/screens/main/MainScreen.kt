@@ -28,10 +28,8 @@ private val testGifs = List(10) {
 }
 
 @Composable
-fun MainScreen() {
-    var textValue by remember {
-        mutableStateOf("")
-    }
+fun MainScreen(gifQuery:String,onTextQueryChanged:(String)->Unit) {
+
     Column(
         modifier = Modifier
             .padding(8.dp)
@@ -41,8 +39,8 @@ fun MainScreen() {
             leadingIcon = {
                 Icon(imageVector = Icons.Default.Search, contentDescription = "")
             },
-            value = textValue,
-            onValueChange = { textValue = it },
+            value = gifQuery,
+            onValueChange = onTextQueryChanged,
             modifier = Modifier.fillMaxWidth(),
             label = { Text(text = "Enter gif...") }
         )
@@ -88,5 +86,5 @@ private fun GifListItem(it: String) {
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
 fun MainScreenPreview() {
-    MainScreen()
+//    MainScreen()
 }
