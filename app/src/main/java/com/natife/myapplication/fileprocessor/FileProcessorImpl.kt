@@ -1,36 +1,28 @@
 package com.natife.myapplication.fileprocessor
 
 import android.content.Context
-import java.io.BufferedReader
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.InputStreamReader
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.net.URL
+
 
 class FileProcessorImpl(private val context: Context) : FileProcessor {
-    override fun writeToFile(fileName: String,data: List<String>) {
-        val fileOutputStream: FileOutputStream
-        try {
-            fileOutputStream = context.openFileOutput(fileName, Context.MODE_PRIVATE)
-            data.forEach {
-                fileOutputStream.write("$it\n".toByteArray())
-            }
-        }catch (e: Exception){
-            e.printStackTrace()
+    override suspend fun writeToFile(fileName: String, data: String) {
+        withContext(Dispatchers.IO) {
+            val url = URL(data)
+            val bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream())
+            val fileOutputStream = context.openFileOutput(fileName, Context.MODE_PRIVATE)
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
         }
     }
 
-    override fun readFromFile(fileName: String): List<String> {
-        val fileInputStream: FileInputStream? = context.openFileInput(fileName)
-        val inputStreamReader = InputStreamReader(fileInputStream)
-        val bufferedReader = BufferedReader(inputStreamReader)
-        val stringBuilder = mutableListOf<String>()
-        var text: String
-        while (run {
-                text = bufferedReader.readLine()
-                text
-            } != "") {
-            stringBuilder.add(text)
+    override suspend fun readFromFile(fileNames: List<String>): List<Bitmap> {
+        return fileNames.map {
+            val path = context.filesDir.path
+            BitmapFactory.decodeFile("$path/$it.gif")
         }
-        return stringBuilder.toList()
+
     }
 }

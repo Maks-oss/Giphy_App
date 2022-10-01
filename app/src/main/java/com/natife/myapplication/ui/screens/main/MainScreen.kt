@@ -1,18 +1,23 @@
 package com.natife.myapplication.ui.screens.main
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Build.VERSION.SDK_INT
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Icon
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -38,6 +43,7 @@ import com.natife.myapplication.R
 fun MainScreen(
     gifQuery: String,
     gifsFlowUiState: UiState<Flow<PagingData<String>>>,
+    savedGifs: List<Bitmap>,
     onTextQueryChanged: (String) -> Unit,
 ) {
     Column(
@@ -56,18 +62,20 @@ fun MainScreen(
         )
         Spacer(modifier = Modifier.padding(8.dp))
 
-
-        DisplayShimmer(isLoading = gifsFlowUiState.isLoading)
         val lazyPagingItems = gifsFlowUiState.data?.collectAsLazyPagingItems()
         if (lazyPagingItems?.loadState?.refresh is LoadState.Error){
-
             Toast.makeText(
                 LocalContext.current,
                 stringResource(id = R.string.empty_response),
                 Toast.LENGTH_SHORT
             ).show()
         }
-        DisplayGifsList(lazyPagingItems = lazyPagingItems)
+        DisplayShimmer(isLoading = gifsFlowUiState.isLoading)
+        if (lazyPagingItems == null){
+            DisplaySavedGifsList(savedGifs)
+        } else {
+            DisplayGifsList(lazyPagingItems = lazyPagingItems)
+        }
     }
 }
 
@@ -78,6 +86,23 @@ private fun DisplayGifsList(lazyPagingItems: LazyPagingItems<String>?) {
             items(gif) {
                 GifListItem(it!!)
             }
+        }
+    }
+}
+@Composable
+private fun DisplaySavedGifsList(savedGifs: List<Bitmap>) {
+    LazyColumn{
+        items(savedGifs) {
+            Image(
+                bitmap = it.asImageBitmap(),
+                contentDescription = "",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+            )
+
+            Spacer(modifier = Modifier.padding(8.dp))
         }
     }
 }

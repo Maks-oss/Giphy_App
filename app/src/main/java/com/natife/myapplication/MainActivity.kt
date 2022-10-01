@@ -22,6 +22,7 @@ class MainActivity : ComponentActivity() {
                 MainScreen(
                     mainViewModel.gifQuery,
                     mainViewModel.gifsFlowUiState,
+                    mainViewModel.savedGifs,
                     mainViewModel::onGifQueryChanged,
                 )
             }

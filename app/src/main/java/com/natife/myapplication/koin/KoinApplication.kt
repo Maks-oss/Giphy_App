@@ -12,6 +12,7 @@ class KoinApplication: Application() {
             modules(listOf(
                 retrofitModule,
                 fileProcessorModule,
+                databaseModule,
                 repositoryModule,
                 viewModelModule
             ))

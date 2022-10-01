@@ -1,5 +1,7 @@
 package com.natife.myapplication.ui.screens.main
 
+import android.graphics.Bitmap
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -13,13 +15,25 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import okio.FileNotFoundException
 
 class MainViewModel(private val gifRepository: GifRepository) : ViewModel() {
+    companion object{
+        private const val TAG = "MainViewModel"
+    }
+
     var gifQuery by mutableStateOf("")
         private set
     private var job: Job? = null
 
     var gifsFlowUiState by mutableStateOf(UiState<Flow<PagingData<String>>>())
+        private set
+    var savedGifs by mutableStateOf<List<Bitmap>>(emptyList())
+        private set
+
+    init {
+        fetchSavedGifs()
+    }
 
     fun onGifQueryChanged(value: String) {
         job?.cancel()
@@ -40,6 +54,17 @@ class MainViewModel(private val gifRepository: GifRepository) : ViewModel() {
         gifsFlowUiState =
             gifsFlowUiState.copy(data = gifsFlow, isLoading = false, errorMessage = null)
 
+    }
+
+    private fun fetchSavedGifs() {
+        viewModelScope.launch {
+            savedGifs = try {
+                gifRepository.fetchGifsFromLocalStorage()
+            } catch (ex: FileNotFoundException) {
+                Log.e(TAG, "fetchSavedGifs: ${ex.message}")
+                emptyList()
+            }
+        }
     }
 
 

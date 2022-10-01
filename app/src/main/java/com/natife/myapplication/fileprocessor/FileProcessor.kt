@@ -1,6 +1,8 @@
 package com.natife.myapplication.fileprocessor
 
+import android.graphics.Bitmap
+
 interface FileProcessor {
-    fun writeToFile(fileName:String,data: List<String>)
-    fun readFromFile(fileName: String): List<String>
+    suspend fun writeToFile(fileName:String,data: String)
+    suspend fun readFromFile(fileNames: List<String>): List<Bitmap>
 }
