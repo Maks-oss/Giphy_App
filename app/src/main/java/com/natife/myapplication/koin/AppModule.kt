@@ -9,6 +9,7 @@ import com.natife.myapplication.repository.GifRepositoryImpl
 import com.natife.myapplication.retrofit.RetrofitClient
 import com.natife.myapplication.room.GifDatabase
 import com.natife.myapplication.ui.screens.main.MainViewModel
+import com.natife.myapplication.ui.screens.second.SecondViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -48,4 +49,5 @@ val repositoryModule = module {
 }
 val viewModelModule = module {
     viewModel { MainViewModel(get()) }
+    viewModel { SecondViewModel() }
 }

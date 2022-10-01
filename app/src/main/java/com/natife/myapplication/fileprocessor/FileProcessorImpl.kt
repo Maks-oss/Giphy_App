@@ -3,6 +3,7 @@ package com.natife.myapplication.fileprocessor
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import com.natife.myapplication.utils.SavedGif
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -19,10 +20,11 @@ class FileProcessorImpl(private val context: Context) : FileProcessor {
         }
 
 
-    override suspend fun readFromFile(fileNames: List<String>): List<Pair<String,Bitmap>> {
+    override suspend fun readFromFile(fileNames: List<String>): List<SavedGif> {
         return fileNames.map { gifId ->
             val path = context.filesDir.path
             gifId to BitmapFactory.decodeFile("$path/$gifId.gif")
+            SavedGif(id = gifId, imageBitmap = BitmapFactory.decodeFile("$path/$gifId.gif"))
         }
 
     }

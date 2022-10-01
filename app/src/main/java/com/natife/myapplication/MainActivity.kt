@@ -9,6 +9,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.natife.myapplication.ui.screens.main.MainScreen
 import com.natife.myapplication.ui.screens.main.MainViewModel
+import com.natife.myapplication.ui.screens.second.SecondViewModel
 import com.natife.myapplication.ui.theme.GiphyAppTheme
 import org.koin.androidx.viewmodel.ext.android.getViewModel
 
@@ -17,15 +18,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val mainViewModel = getViewModel<MainViewModel>()
+        val secondViewModel = getViewModel<SecondViewModel>()
         setContent {
             GiphyAppTheme {
-                MainScreen(
-                    mainViewModel.gifQuery,
-                    mainViewModel.gifsFlowUiState,
-                    mainViewModel.savedGifs,
-                    mainViewModel::onGifQueryChanged,
-                    mainViewModel::deleteGif
-                )
+               AppNavigator(mainViewModel, secondViewModel)
             }
         }
     }

@@ -1,10 +1,10 @@
 package com.natife.myapplication.ui.screens.main
 
 import android.graphics.Bitmap
-import android.os.Build.VERSION.SDK_INT
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -27,16 +27,13 @@ import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.items
-import coil.ImageLoader
-import coil.compose.rememberAsyncImagePainter
-import coil.decode.GifDecoder
-import coil.decode.ImageDecoderDecoder
-import coil.request.ImageRequest
 import com.natife.myapplication.R
 import com.natife.myapplication.room.Gif
 import com.natife.myapplication.ui.animations.DisplayShimmer
+import com.natife.myapplication.ui.composeutils.LoadGif
 import com.natife.myapplication.ui.composeutils.SwipeToDelete
 import com.natife.myapplication.ui.uistate.UiState
+import com.natife.myapplication.utils.SavedGif
 import kotlinx.coroutines.flow.Flow
 
 @ExperimentalFoundationApi
@@ -44,9 +41,11 @@ import kotlinx.coroutines.flow.Flow
 fun MainScreen(
     gifQuery: String,
     gifsFlowUiState: UiState<Flow<PagingData<Gif>>>,
-    savedGifs: List<Pair<String, Bitmap>>,
+    savedGifs: List<SavedGif>,
     onTextQueryChanged: (String) -> Unit,
-    swipeToDelete: (String) -> Unit
+    swipeToDelete: (String) -> Unit,
+    navigateToSecondScreen:(Gif)->Unit,
+    navigateToSecondScreenFromSaved:(SavedGif)->Unit
 ) {
 
     Column(
@@ -75,9 +74,9 @@ fun MainScreen(
         }
         DisplayShimmer(isLoading = gifsFlowUiState.isLoading)
         if (lazyPagingItems == null) {
-            DisplaySavedGifsList(savedGifs, swipeToDelete = swipeToDelete)
+            DisplaySavedGifsList(savedGifs, swipeToDelete = swipeToDelete, navigateToSecondScreen = navigateToSecondScreenFromSaved)
         } else {
-            DisplayGifsList(lazyPagingItems = lazyPagingItems)
+            DisplayGifsList(lazyPagingItems, navigateToSecondScreen = navigateToSecondScreen)
         }
     }
 }
@@ -85,11 +84,12 @@ fun MainScreen(
 @Composable
 private fun DisplayGifsList(
     lazyPagingItems: LazyPagingItems<Gif>?,
+    navigateToSecondScreen:(Gif)->Unit
 ) {
     lazyPagingItems?.let { gif ->
         LazyColumn {
             items(gif) {
-                GifListItem(it!!)
+                GifListItem(it!!, navigateToSecondScreen)
             }
         }
     }
@@ -97,59 +97,51 @@ private fun DisplayGifsList(
 
 @Composable
 private fun DisplaySavedGifsList(
-    savedGifs: List<Pair<String, Bitmap>>,
-    swipeToDelete: (String) -> Unit
+    savedGifs: List<SavedGif>,
+    swipeToDelete: (String) -> Unit,
+    navigateToSecondScreen: (SavedGif) -> Unit
 ) {
 
     LazyColumn {
-        items(savedGifs, key = {it.first}) {
-            SwipeToDelete(delete = {
-                swipeToDelete(it.first)
-            }) {
-                Column {
-                    Image(
-                        bitmap = it.second.asImageBitmap(),
-                        contentDescription = "",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                    )
-
-                    Spacer(modifier = Modifier.padding(8.dp))
-                }
-            }
+        items(savedGifs, key = { it.id }) {
+            SavedGifListItem(swipeToDelete, it, navigateToSecondScreen)
         }
 
     }
 
 }
 
+@Composable
+private fun SavedGifListItem(
+    swipeToDelete: (String) -> Unit,
+    gif: SavedGif,
+    navigateToSecondScreen: (SavedGif) -> Unit
+) {
+    SwipeToDelete(delete = {
+        swipeToDelete(gif.id)
+    }) {
+        Column(modifier = Modifier.clickable { navigateToSecondScreen(gif) }) {
+            Image(
+                bitmap = gif.imageBitmap.asImageBitmap(),
+                contentDescription = "",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+            )
+
+            Spacer(modifier = Modifier.padding(8.dp))
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun GifListItem(gif: Gif) {
-    val context = LocalContext.current
-    val imageLoader = ImageLoader.Builder(context)
-        .components {
-            if (SDK_INT >= 28) {
-                add(ImageDecoderDecoder.Factory())
-            } else {
-                add(GifDecoder.Factory())
-            }
-        }.build()
-    val imagePainter = rememberAsyncImagePainter(
-        imageLoader = imageLoader, model = ImageRequest.Builder(context)
-            .data(gif.url)
-            .crossfade(true)
-            .build()
-    )
-
-    Image(
-        painter = imagePainter,
-        contentDescription = "",
-        contentScale = ContentScale.Crop,
-        modifier = Modifier
+private fun GifListItem(gif: Gif,navigateToSecondScreen: (Gif) -> Unit) {
+    LoadGif(
+        gif, modifier = Modifier
             .fillMaxWidth()
+            .clickable { navigateToSecondScreen(gif) }
             .height(200.dp)
     )
 

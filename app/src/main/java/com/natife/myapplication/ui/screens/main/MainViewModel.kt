@@ -1,6 +1,5 @@
 package com.natife.myapplication.ui.screens.main
 
-import android.graphics.Bitmap
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -12,6 +11,7 @@ import androidx.paging.cachedIn
 import com.natife.myapplication.repository.GifRepository
 import com.natife.myapplication.room.Gif
 import com.natife.myapplication.ui.uistate.UiState
+import com.natife.myapplication.utils.SavedGif
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -29,7 +29,7 @@ class MainViewModel(private val gifRepository: GifRepository) : ViewModel() {
 
     var gifsFlowUiState by mutableStateOf(UiState<Flow<PagingData<Gif>>>())
         private set
-    var savedGifs by mutableStateOf<List<Pair<String,Bitmap>>>(emptyList())
+    var savedGifs by mutableStateOf<List<SavedGif>>(emptyList())
         private set
 
     init {
@@ -68,10 +68,10 @@ class MainViewModel(private val gifRepository: GifRepository) : ViewModel() {
         }
     }
 
-    fun deleteGif(gif: String) {
+    fun deleteGif(gifId: String) {
         viewModelScope.launch {
-            gifRepository.deleteGifFromLocalStorage(gif)
-            savedGifs = savedGifs.filter { it.first != gif }
+            gifRepository.deleteGifFromLocalStorage(gifId)
+            savedGifs = savedGifs.filter { it.id != gifId }
         }
     }
 
