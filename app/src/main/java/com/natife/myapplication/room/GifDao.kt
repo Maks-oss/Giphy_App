@@ -7,6 +7,9 @@ interface GifDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertGifs(gifs:List<Gif>)
 
+    @Query("UPDATE gif SET isRemoved = :isRemoved WHERE id = :gifId ")
+    suspend fun updateGif(gifId:String, isRemoved:Boolean)
+
     @Delete
     suspend fun deleteGif(gif: Gif)
 

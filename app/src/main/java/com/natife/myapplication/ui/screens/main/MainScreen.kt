@@ -1,7 +1,6 @@
 package com.natife.myapplication.ui.screens.main
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.os.Build.VERSION.SDK_INT
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -9,13 +8,13 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -33,19 +32,23 @@ import coil.compose.rememberAsyncImagePainter
 import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
+import com.natife.myapplication.R
+import com.natife.myapplication.room.Gif
 import com.natife.myapplication.ui.animations.DisplayShimmer
+import com.natife.myapplication.ui.composeutils.SwipeToDelete
 import com.natife.myapplication.ui.uistate.UiState
 import kotlinx.coroutines.flow.Flow
-import com.natife.myapplication.R
 
 @ExperimentalFoundationApi
 @Composable
 fun MainScreen(
     gifQuery: String,
-    gifsFlowUiState: UiState<Flow<PagingData<String>>>,
-    savedGifs: List<Bitmap>,
+    gifsFlowUiState: UiState<Flow<PagingData<Gif>>>,
+    savedGifs: List<Pair<String, Bitmap>>,
     onTextQueryChanged: (String) -> Unit,
+    swipeToDelete: (String) -> Unit
 ) {
+
     Column(
         modifier = Modifier
             .padding(8.dp)
@@ -63,7 +66,7 @@ fun MainScreen(
         Spacer(modifier = Modifier.padding(8.dp))
 
         val lazyPagingItems = gifsFlowUiState.data?.collectAsLazyPagingItems()
-        if (lazyPagingItems?.loadState?.refresh is LoadState.Error){
+        if (lazyPagingItems?.loadState?.refresh is LoadState.Error) {
             Toast.makeText(
                 LocalContext.current,
                 stringResource(id = R.string.empty_response),
@@ -71,8 +74,8 @@ fun MainScreen(
             ).show()
         }
         DisplayShimmer(isLoading = gifsFlowUiState.isLoading)
-        if (lazyPagingItems == null){
-            DisplaySavedGifsList(savedGifs)
+        if (lazyPagingItems == null) {
+            DisplaySavedGifsList(savedGifs, swipeToDelete = swipeToDelete)
         } else {
             DisplayGifsList(lazyPagingItems = lazyPagingItems)
         }
@@ -80,7 +83,9 @@ fun MainScreen(
 }
 
 @Composable
-private fun DisplayGifsList(lazyPagingItems: LazyPagingItems<String>?) {
+private fun DisplayGifsList(
+    lazyPagingItems: LazyPagingItems<Gif>?,
+) {
     lazyPagingItems?.let { gif ->
         LazyColumn {
             items(gif) {
@@ -89,40 +94,40 @@ private fun DisplayGifsList(lazyPagingItems: LazyPagingItems<String>?) {
         }
     }
 }
-@Composable
-private fun DisplaySavedGifsList(savedGifs: List<Bitmap>) {
-    LazyColumn{
-        items(savedGifs) {
-            Image(
-                bitmap = it.asImageBitmap(),
-                contentDescription = "",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-            )
-
-            Spacer(modifier = Modifier.padding(8.dp))
-        }
-    }
-}
 
 @Composable
-private fun DisplayGifsList(gifsUiState: UiState<Flow<PagingData<String>>>) {
-    gifsUiState.data?.let { gifsFlow ->
-        val lazyPagingItems = gifsFlow.collectAsLazyPagingItems()
-        LazyColumn {
-            items(lazyPagingItems){
-                GifListItem(it!!)
+private fun DisplaySavedGifsList(
+    savedGifs: List<Pair<String, Bitmap>>,
+    swipeToDelete: (String) -> Unit
+) {
+
+    LazyColumn {
+        items(savedGifs, key = {it.first}) {
+            SwipeToDelete(delete = {
+                swipeToDelete(it.first)
+            }) {
+                Column {
+                    Image(
+                        bitmap = it.second.asImageBitmap(),
+                        contentDescription = "",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                    )
+
+                    Spacer(modifier = Modifier.padding(8.dp))
+                }
             }
         }
+
     }
 
 }
 
-
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun GifListItem(it: String) {
+private fun GifListItem(gif: Gif) {
     val context = LocalContext.current
     val imageLoader = ImageLoader.Builder(context)
         .components {
@@ -134,7 +139,7 @@ private fun GifListItem(it: String) {
         }.build()
     val imagePainter = rememberAsyncImagePainter(
         imageLoader = imageLoader, model = ImageRequest.Builder(context)
-            .data(it)
+            .data(gif.url)
             .crossfade(true)
             .build()
     )
@@ -149,6 +154,8 @@ private fun GifListItem(it: String) {
     )
 
     Spacer(modifier = Modifier.padding(8.dp))
+
+
 }
 
 

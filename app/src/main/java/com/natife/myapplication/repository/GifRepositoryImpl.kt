@@ -23,17 +23,20 @@ class GifRepositoryImpl(
 //        if (gifDto?.data == null) return emptyList()
 //        return GifsMapper.convertGifDtoToGifList(gifDto)
 //    }
-    override fun fetchGifs(query: String, limit: Int, offset: Int): Flow<PagingData<String>> {
+    override fun fetchGifs(query: String, limit: Int, offset: Int): Flow<PagingData<Gif>> {
         return Pager(config = PagingConfig(pageSize = GifSource.ITEMS_PER_PAGE)) {
             GifSource(gifService, fileProcessor,gifDao,query)
         }.flow
     }
 
-    override suspend fun fetchGifsFromLocalStorage(): List<Bitmap> {
-
+    override suspend fun fetchGifsFromLocalStorage(): List<Pair<String,Bitmap>> {
         val gifsId = gifDao.getAllGifs().filter {!it.isRemoved }.map { it.id }
-
         return fileProcessor.readFromFile(gifsId)
+    }
+
+    override suspend fun deleteGifFromLocalStorage(fileName:String): Boolean {
+        gifDao.updateGif(fileName,true)
+        return fileProcessor.deleteFile(fileName)
     }
 
 //    override suspend fun fetchGifsFromDatabase(): List<Gif> = gifDao.

@@ -24,6 +24,7 @@ class MainActivity : ComponentActivity() {
                     mainViewModel.gifsFlowUiState,
                     mainViewModel.savedGifs,
                     mainViewModel::onGifQueryChanged,
+                    mainViewModel::deleteGif
                 )
             }
         }

@@ -8,5 +8,5 @@ data class Gif(
     @PrimaryKey
     val id: String,
     val url: String,
-    val isRemoved: Boolean = false
+    var isRemoved: Boolean = false
 )

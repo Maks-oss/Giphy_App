@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.natife.myapplication.repository.GifRepository
+import com.natife.myapplication.room.Gif
 import com.natife.myapplication.ui.uistate.UiState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -18,7 +19,7 @@ import kotlinx.coroutines.launch
 import okio.FileNotFoundException
 
 class MainViewModel(private val gifRepository: GifRepository) : ViewModel() {
-    companion object{
+    companion object {
         private const val TAG = "MainViewModel"
     }
 
@@ -26,9 +27,9 @@ class MainViewModel(private val gifRepository: GifRepository) : ViewModel() {
         private set
     private var job: Job? = null
 
-    var gifsFlowUiState by mutableStateOf(UiState<Flow<PagingData<String>>>())
+    var gifsFlowUiState by mutableStateOf(UiState<Flow<PagingData<Gif>>>())
         private set
-    var savedGifs by mutableStateOf<List<Bitmap>>(emptyList())
+    var savedGifs by mutableStateOf<List<Pair<String,Bitmap>>>(emptyList())
         private set
 
     init {
@@ -64,6 +65,13 @@ class MainViewModel(private val gifRepository: GifRepository) : ViewModel() {
                 Log.e(TAG, "fetchSavedGifs: ${ex.message}")
                 emptyList()
             }
+        }
+    }
+
+    fun deleteGif(gif: String) {
+        viewModelScope.launch {
+            gifRepository.deleteGifFromLocalStorage(gif)
+            savedGifs = savedGifs.filter { it.first != gif }
         }
     }
 

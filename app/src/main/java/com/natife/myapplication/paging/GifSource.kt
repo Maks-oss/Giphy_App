@@ -8,6 +8,8 @@ import com.natife.myapplication.retrofit.GifService
 import com.natife.myapplication.room.Gif
 import com.natife.myapplication.room.GifDao
 import com.natife.myapplication.utils.GifsMapper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import java.io.IOException
 
@@ -17,13 +19,13 @@ class GifSource(
     private val gifDao: GifDao,
     private val query: String
 ) :
-    PagingSource<Int, String>() {
+    PagingSource<Int, Gif>() {
     companion object {
         const val ITEMS_PER_PAGE = 4
         private const val TAG = "GifSource"
     }
 
-    override fun getRefreshKey(state: PagingState<Int, String>): Int? {
+    override fun getRefreshKey(state: PagingState<Int, Gif>): Int? {
         return state.anchorPosition?.let { anchorPosition ->
             state.closestPageToPosition(anchorPosition)?.prevKey?.plus(1)
                 ?: state.closestPageToPosition(anchorPosition)?.nextKey?.minus(1)
@@ -31,19 +33,40 @@ class GifSource(
     }
 
 
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, String> {
+    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Gif> {
         return try {
             val nextPage = params.key ?: 1
             val gifDto =
                 fetchGifsFromServer(nextPage) ?: return LoadResult.Error(IOException())
 
-            val gifData = GifsMapper.convertGifDtoToGifList(gifDto)
+            val gifData = withContext(Dispatchers.IO) {
+                GifsMapper.convertGifDtoToGifList(gifDto).filter {
+                    val gifById = gifDao.getGifById(it.id)
+                    gifById?.isRemoved == false || gifById == null
+                }
+            }
+//            val gifData = GifsMapper.convertGifDtoToGifList(gifDto)
+//            val removedGifs = gifDao.getAllGifs().filter { it.isRemoved }
+//            var list = mutableListOf<Gif>()
+//            var removedGifCount = 0
+//            for (gif in gifData){
+//                for (removedGif in removedGifs){
+//                    if (gif.id != removedGif.id){
+//                        list.add(gif)
+//                    } else {
+//                        removedGifCount++
+//                    }
+//                }
+//            }
+//            if (list.isEmpty()) {
+//                list = GifsMapper.convertGifDtoToGifList(fetchGifsFromServer(removedGifCount)!!).toMutableList()
+//            }
             if (gifData.isEmpty()) {
                 return LoadResult.Error(Exception())
             }
             addGifsToLocalStorage(gifData)
             LoadResult.Page(
-                data = gifData.map { it.url },
+                data = gifData,
                 prevKey = if (nextPage == 1) null else nextPage - 1,
                 nextKey = if (gifData.isEmpty()) null else (gifDto.pagination.offset * ITEMS_PER_PAGE) + 1
             )

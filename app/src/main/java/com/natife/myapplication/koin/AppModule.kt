@@ -39,7 +39,9 @@ private fun provideGifDatabase(context: Context) = Room.databaseBuilder(
     GifDatabase::class.java, "GifDatabase"
 ).fallbackToDestructiveMigration()
     .build()
-private fun provideDao(gifDatabase: GifDatabase) = gifDatabase/*.also { CoroutineScope(Dispatchers.IO).launch {  it.clearAllTables()} }*/.gifDao()
+private fun provideDao(gifDatabase: GifDatabase) = gifDatabase
+//    .also { CoroutineScope(Dispatchers.IO).launch {  it.clearAllTables()} }
+    .gifDao()
 
 val repositoryModule = module {
     single<GifRepository> { GifRepositoryImpl(get(), get(),get()) }
