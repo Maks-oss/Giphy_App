@@ -45,7 +45,7 @@ fun MainScreen(
     onTextQueryChanged: (String) -> Unit,
     swipeToDelete: (String) -> Unit,
     navigateToSecondScreen:(Gif)->Unit,
-    navigateToSecondScreenFromSaved:(SavedGif)->Unit
+    navigateToSecondScreenFromSaved:(SavedGif)->Unit,
 ) {
 
     Column(

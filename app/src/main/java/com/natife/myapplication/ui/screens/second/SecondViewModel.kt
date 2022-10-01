@@ -11,4 +11,5 @@ import com.natife.myapplication.utils.SavedGif
 class SecondViewModel: ViewModel() {
     var gif by mutableStateOf<Gif?>(null)
     var savedGif by mutableStateOf<SavedGif?>(null)
+
 }
