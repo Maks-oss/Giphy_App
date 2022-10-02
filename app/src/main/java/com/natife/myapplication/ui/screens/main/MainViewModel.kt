@@ -48,12 +48,12 @@ class MainViewModel(private val gifRepository: GifRepository) : ViewModel() {
     }
 
     private suspend fun fetchGifs() {
-        gifsFlowUiState = gifsFlowUiState.copy(data = null, isLoading = true, errorMessage = null)
+        gifsFlowUiState = gifsFlowUiState.copy(data = null, isLoading = true)
         delay(1000)
         val gifsFlow = gifRepository.fetchGifs(gifQuery).cachedIn(viewModelScope)
 
         gifsFlowUiState =
-            gifsFlowUiState.copy(data = gifsFlow, isLoading = false, errorMessage = null)
+            gifsFlowUiState.copy(data = gifsFlow, isLoading = false)
 
     }
 

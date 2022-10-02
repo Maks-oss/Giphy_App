@@ -1,7 +1,6 @@
 package com.natife.myapplication.fileprocessor
 
 import android.content.Context
-import android.graphics.BitmapFactory
 import com.natife.myapplication.utils.SavedGif
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -12,9 +11,9 @@ import java.net.URL
 class FileProcessorImpl(private val context: Context) : FileProcessor {
     override suspend fun writeToFile(fileName: String, data: String): Unit =
         withContext(Dispatchers.IO) {
-            val url = URL(data).readBytes()
+            val fileBytes = URL(data).readBytes()
             val fileOutputStream = context.openFileOutput(fileName, Context.MODE_PRIVATE)
-            fileOutputStream.write(url)
+            fileOutputStream.write(fileBytes)
         }
 
 
