@@ -13,6 +13,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import coil.ImageLoader
+import coil.compose.AsyncImagePainter
+import coil.compose.SubcomposeAsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
@@ -38,7 +40,7 @@ fun SwipeToDelete(delete: () -> Unit, content: @Composable () -> Unit) {
 }
 
 @Composable
-fun LoadGif(gif: Gif, modifier: Modifier = Modifier) {
+fun<T> LoadGif(gif: T, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val imageLoader = ImageLoader.Builder(context)
         .components {
@@ -50,18 +52,18 @@ fun LoadGif(gif: Gif, modifier: Modifier = Modifier) {
         }.build()
     val imagePainter = rememberAsyncImagePainter(
         imageLoader = imageLoader, model = ImageRequest.Builder(context)
-            .data(gif.url)
+            .data(gif)
             .crossfade(true)
             .build()
     )
-
+    val painterState = imagePainter.state
+    if (painterState is AsyncImagePainter.State.Loading){
+        CircularProgressIndicator()
+    }
     Image(
         painter = imagePainter,
         contentDescription = "",
         contentScale = ContentScale.Crop,
-        modifier = /*Modifier
-            .fillMaxWidth()
-            .height(200.dp)*/
-        modifier
+        modifier = modifier
     )
 }

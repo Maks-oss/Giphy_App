@@ -45,26 +45,13 @@ class GifSource(
                     gifById?.isRemoved == false || gifById == null
                 }
             }
-//            val gifData = GifsMapper.convertGifDtoToGifList(gifDto)
-//            val removedGifs = gifDao.getAllGifs().filter { it.isRemoved }
-//            var list = mutableListOf<Gif>()
-//            var removedGifCount = 0
-//            for (gif in gifData){
-//                for (removedGif in removedGifs){
-//                    if (gif.id != removedGif.id){
-//                        list.add(gif)
-//                    } else {
-//                        removedGifCount++
-//                    }
-//                }
-//            }
-//            if (list.isEmpty()) {
-//                list = GifsMapper.convertGifDtoToGifList(fetchGifsFromServer(removedGifCount)!!).toMutableList()
-//            }
+
             if (gifData.isEmpty()) {
                 return LoadResult.Error(Exception())
             }
-            addGifsToLocalStorage(gifData)
+            withContext(Dispatchers.Default) {
+                addGifsToLocalStorage(gifData)
+            }
             LoadResult.Page(
                 data = gifData,
                 prevKey = if (nextPage == 1) null else nextPage - 1,

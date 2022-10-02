@@ -8,5 +8,5 @@ import java.io.ByteArrayOutputStream
 
 data class SavedGif(
     val id: String,
-    val imageBitmap: Bitmap
+    val gifByteArray: ByteArray
 )
