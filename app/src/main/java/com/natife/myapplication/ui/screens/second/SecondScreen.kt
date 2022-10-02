@@ -56,8 +56,7 @@ private fun DisplayHorizontalList(savedGifs: List<SavedGif>) {
             Row {
                 LoadGif(
                     gif = it.gifByteArray, modifier = Modifier
-                        .fillMaxWidth()
-                        .height(100.dp)
+                        .size(height = 100.dp, width = 200.dp)
                 )
                 Spacer(modifier = Modifier.padding(8.dp))
             }
